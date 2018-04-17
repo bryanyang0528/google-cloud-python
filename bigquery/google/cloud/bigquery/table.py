@@ -522,6 +522,55 @@ class Table(object):
                 self._properties['timePartitioning']['expirationMs'] = value
 
     @property
+    def partition_field(self):
+        """Expiration time in ms for a partition
+        :rtype: str
+        :returns: Returns the column by which table is partitioned
+        """
+        return self._properties.get('timePartitioning', {}).get('field', '_PARTITIONTIME')
+
+    @partition_field.setter
+    def partition_field(self, value):
+        """Update the partition filed of the table
+
+        :type value: str
+        :param value: the column by which table is partitioned
+        """
+        if not isinstance(value, six.string_types) and value is not None:
+            raise ValueError("Pass a string")
+
+        if value is None:
+            if 'timePartitioning' in self._properties:
+                self._properties['timePartitioning'] = '_PARTITIONTIME'
+        else:
+            try:
+                self._properties['timePartitioning']['filed'] = value
+            except KeyError:
+                self._properties['timePartitioning'] = {'type': 'DAY'}
+                self._properties['timePartitioning']['filed'] = value
+
+    @property
+    def partition_require_filter(self):
+        """Expiration time in ms for a partition
+        :rtype: bool
+        :returns: True if queries over this table require a partition filter
+        """
+        return self._properties.get('timePartitioning', {}).get('requirePartitionFilter', False)
+
+    @partition_require_filter.setter
+    def partition_require_filter(self, value):
+        """Update if this table require a partition filter when query
+
+        :type value: bool
+        :param value: True if queries over this table require a partition filter
+        """
+        if not isinstance(value, bool):
+            raise ValueError("Pass a boolean")
+        if self._properties.get('timePartitioning') is None:
+            self._properties['timePartitioning'] = {'type': 'DAY'}
+        self._properties['timePartitioning']['filed'] = value
+
+    @property
     def description(self):
         """Description of the table.
 
@@ -948,6 +997,22 @@ class TableListItem(object):
             'timePartitioning', {}).get('expirationMs')
         if expiration is not None:
             return int(expiration)
+
+    @property
+    def partition_field(self):
+        """Expiration time in ms for a partition
+        :rtype: str
+        :returns: Returns the column by which table is partitioned
+        """
+        return self._properties.get('timePartitioning', {}).get('field', '_PARTITIONTIME')
+
+    @property
+    def partition_require_filter(self):
+        """Expiration time in ms for a partition
+        :rtype: bool
+        :returns: True if queries over this table require a partition filter
+        """
+        return self._properties.get('timePartitioning', {}).get('requirePartitionFilter', False)
 
     @property
     def friendly_name(self):
